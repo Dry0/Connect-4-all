@@ -1,12 +1,13 @@
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    [SerializeField] private GridManager gridManager; // Verwijzing naar GridManager
-    [SerializeField] private GameObject player1DiscPrefab; // Prefab voor speler 1
-    [SerializeField] private GameObject player2DiscPrefab; // Prefab voor speler 2
+    [SerializeField] private GridManager gridManager; // Refrence to GridManager
+    [SerializeField] private GameObject player1DiscPrefab; // Prefab for player 1
+    [SerializeField] private GameObject player2DiscPrefab; // Prefab for player 2
 
-    private bool isPlayer1Turn = true; // Houd bij wiens beurt het is
+    private bool isPlayer1Turn = true; // Keep track of whose turn it is
 
     private void OnEnable()
     {
@@ -20,20 +21,23 @@ public class GameManager : MonoBehaviour
 
     private void HandleColumnClick(int columnIndex)
     {
-        // Zoek de laagste lege cel in de kolom
+        // Looks for the lowest cell in the column
         for (int row = gridManager.GetRows() - 1; row >= 0; row--)
         {
             GameObject cell = gridManager.GetCell(row, columnIndex);
-            if (cell.transform.childCount == 0) // Controleer of de cel leeg is
+            if (cell.transform.childCount == 0) // Checks if the cell is empty
             {
-                // Selecteer de juiste prefab voor de huidige speler
+                // Selects the right Prefab for the current player
                 GameObject discPrefab = isPlayer1Turn ? player1DiscPrefab : player2DiscPrefab;
 
-                // Plaats de schijf in deze cel
+                // Places the disc in this cell 
                 Vector3 position = cell.transform.position;
-                Instantiate(discPrefab, position, Quaternion.identity, cell.transform);
+                GameObject newDisc = Instantiate(discPrefab, position, Quaternion.identity, cell.transform);
+                
+                // Looks for the winner
+                CheckForWin(row,columnIndex, newDisc);
 
-                // Wissel van speler
+                // Switches player
                 isPlayer1Turn = !isPlayer1Turn;
                 Debug.Log($"Speler {(isPlayer1Turn ? 1 : 2)} is aan de beurt!");
                 return;
@@ -42,37 +46,45 @@ public class GameManager : MonoBehaviour
 
         Debug.LogWarning("Kolom is vol! Kies een andere kolom.");
     }
+
+    private void CheckForWin(int row, int column, GameObject playerDisc)
+    {
+        if (CountInDirection(row,column, 1,0, playerDisc) + CountInDirection(row, column, -1, 0, playerDisc) >= 3 || // Horizontal
+            CountInDirection(row, column, 0, 1, playerDisc) + CountInDirection(row, column, 0, 1, playerDisc) >= 3 || // Vertical
+            CountInDirection(row, column, 1, 1, playerDisc) + CountInDirection(row, column, -1, -1, playerDisc) >= 3 || // Diagonal (\)
+            CountInDirection(row, column, 1,-1, playerDisc) + CountInDirection(row, column, -1, 1, playerDisc) >= 3); // Diagonal (/)
+        {
+            Debug.Log($"Player {(isPlayer1Turn ? 2: 1)} Wins!"); // Player 1 or 2 wins (change already after turn)
+            // Here you can add further actions, such as showing a UI screen or stopping the game.
+        }
+    }
+
+    private int CountInDirection(int startRow, int startColumn, int rowDirection, int columnDirection, GameObject playerDisc)
+    {
+        int count = 0;
+        int currentRow = startRow + rowDirection;
+        int currentColumn = startColumn + columnDirection;
+        
+        while (currentRow >= 0 && currentRow < gridManager.GetRows() &&
+               currentColumn >= 0 && currentColumn < gridManager.GetColumns())
+        {
+            GameObject cell = gridManager.GetCell(currentRow, currentColumn);
+            
+            // Checks if the cell has a disc of the same player
+            if (cell.transform.childCount > 0 &&
+                cell.transform.GetChild(0).gameObject.CompareTag(playerDisc.tag))
+            {
+                count++;
+                currentRow += rowDirection;
+                currentColumn += columnDirection;
+            }
+            else
+            {
+                break; // Stops if the line gets interrupted
+            }
+        }
+
+        return count;
+    }
+    
 }
-
-
-
-// [SerializeField] private GridManager gridManager; // Refrence to the gridmanager 
-// [SerializeField] private GameObject discprefab; // prefab for the discs
-//
-// private void OnEnable()
-// {
-//     InputManager.OnColumnSelected += HandleColumnSelection;
-// }
-//
-// private void OnDisable()
-// {
-//     InputManager.OnColumnSelected -= HandleColumnSelection;
-// }
-//
-// private void HandleColumnSelection(int columnIndex)
-// {
-//     // Looks for the lowest empty cell in the column
-//     for (int row = gridManager.GetRows() - 1; row >= 0; row--) // fout melding object refrence
-//     {
-//         GameObject cell = gridManager.GetCell(row, columnIndex);
-//         if (cell.transform.childCount == 0) // Checks if the cell is empty
-//         {
-//             // Puts a disc in this cell
-//             Vector3 position = cell.transform.position;
-//             Instantiate(discprefab, position, Quaternion.identity, cell.transform);
-//             Debug.Log($"Disc placed in column {{columnIndex}}, row {{row}}");
-//             return;
-//         }
-//     }
-//     Debug.LogWarning("Column is full pick a diffrent column .");
-// }
