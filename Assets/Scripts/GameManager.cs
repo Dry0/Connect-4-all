@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI; // Voor UI-elementen
 
@@ -7,7 +8,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject player1DiscPrefab; // Prefab for player 1
     [SerializeField] private GameObject player2DiscPrefab; // Prefab for player 2
     [SerializeField] private GameObject winPanel; // Panel dat verschijnt bij winst
-    [SerializeField] private Text winMessageText; // Tekst die de winnaar toont
+    [SerializeField] private TextMeshProUGUI winMessageText; // Tekst die de winnaar toont
 
     private bool _isPlayer1Turn = true; // Keep track of whose turn it is
     private bool _isGameOver; // Houd bij of het spel is afgelopen, standaard is false
