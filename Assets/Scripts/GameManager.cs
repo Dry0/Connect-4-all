@@ -1,21 +1,20 @@
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI; // Voor UI-elementen
-
+using UnityEngine.UI; 
 public class GameManager : MonoBehaviour
 {
     [SerializeField] private GridManager gridManager; // Reference to GridManager
     [SerializeField] private GameObject player1DiscPrefab; // Prefab for player 1
     [SerializeField] private GameObject player2DiscPrefab; // Prefab for player 2
-    [SerializeField] private GameObject winPanel; // Panel dat verschijnt bij winst
-    [SerializeField] private TextMeshProUGUI winMessageText; // Tekst die de winnaar toont
+    [SerializeField] private GameObject winPanel; // Panel that appears when a player wins
+    [SerializeField] private TextMeshProUGUI winMessageText; // Tekxt that show who won
 
     private bool _isPlayer1Turn = true; // Keep track of whose turn it is
-    private bool _isGameOver; // Houd bij of het spel is afgelopen, standaard is false
+    private bool _isGameOver; // Keep track of whether the game has ended, default is false 
 
     private void Start()
     {
-        winPanel.SetActive(false); // Zorg dat de win UI verborgen is bij start
+        winPanel.SetActive(false); // Make sure the win UI is hidden at startup
     }
 
     private void OnEnable()
@@ -30,46 +29,46 @@ public class GameManager : MonoBehaviour
 
     private void HandleColumnClick(int columnIndex)
     {
-        if (_isGameOver) return; // Stop input als het spel voorbij is
+        if (_isGameOver) return; // Stop input when the game is over
 
-        // Zoek de laagste beschikbare cel in de kolom
+        // Find the lowest available cell in the column
         for (int row = gridManager.GetRows() - 1; row >= 0; row--)
         {
             GameObject cell = gridManager.GetCell(row, columnIndex);
-            if (cell.transform.childCount == 0) // Controleer of de cel leeg is
+            if (cell.transform.childCount == 0) // Check that the cell is empty
             {
-                // Kies de juiste prefab voor de huidige speler
+                // Choose the right prefab for the current player
                 GameObject discPrefab = _isPlayer1Turn ? player1DiscPrefab : player2DiscPrefab;
 
-                // Plaats de schijf in deze cel
+                // Places the disc in this cell
                 Vector3 position = cell.transform.position;
                 GameObject newDisc = Instantiate(discPrefab, position, Quaternion.identity, cell.transform);
 
-                // Sla de huidige speler op voordat de beurt wisselt
+                // Saves the current player before the turn changes
                 bool currentPlayerIsPlayer1 = _isPlayer1Turn;
 
-                // Kijk of deze zet een winnaar heeft opgeleverd
+                // See if this move produced a winner
                 if (CheckForWin(row, columnIndex, newDisc))
                 {
                     EndGame(currentPlayerIsPlayer1);
                 }
                 else
                 {
-                    // Wissel van beurt als niemand wint
+                    // Switches turn if nobody wins
                     _isPlayer1Turn = !_isPlayer1Turn;
-                    Debug.Log($"Speler {(_isPlayer1Turn ? 1 : 2)} is aan de beurt!");
+                    Debug.Log($"Player {(_isPlayer1Turn ? 1 : 2)} turn!");
                 }
 
                 return;
             }
         }
 
-        Debug.LogWarning("Kolom is vol! Kies een andere kolom.");
+        Debug.LogWarning("Column is full pick a different column.");
     }
 
     private bool CheckForWin(int row, int column, GameObject playerDisc)
     {
-        // Controleer horizontaal, verticaal en diagonaal
+        // Checks for horizontal, vertical and diagonal
         return (CountInDirection(row, column, 1, 0, playerDisc) + CountInDirection(row, column, -1, 0, playerDisc) >= 3 || // Horizontaal
                 CountInDirection(row, column, 0, 1, playerDisc) + CountInDirection(row, column, 0, -1, playerDisc) >= 3 || // Verticaal
                 CountInDirection(row, column, 1, 1, playerDisc) + CountInDirection(row, column, -1, -1, playerDisc) >= 3 || // Diagonaal (\)
@@ -105,24 +104,24 @@ public class GameManager : MonoBehaviour
 
     private void EndGame(bool player1Won)
     {
-        _isGameOver = true; // Zet het spel op "beëindigd"
-        winMessageText.text = $"Speler {(player1Won ? 1 : 2)} wint!"; // Toon de winnaar
-        winPanel.SetActive(true); // Maak het win UI zichtbaar (met de Play Again knop)
+        _isGameOver = true; // Set the game on "Ended"
+        winMessageText.text = $"Player {(player1Won ? 1 : 2)} wins!"; // Shows the winner
+        winPanel.SetActive(true); // Make the win UI visible (with the Play Again button)
     }
 
     public void PlayAgain()
     {
-        // Reset het spel
+        // Resets the game
         foreach (Transform cell in gridManager.transform)
         {
             if (cell.childCount > 0)
             {
-                Destroy(cell.GetChild(0).gameObject); // Verwijder alle discs
+                Destroy(cell.GetChild(0).gameObject); // Deletes all discs
             }
         }
 
-        winPanel.SetActive(false); // Verberg de win UI
-        _isGameOver = false; // Reset de spelstatus
-        _isPlayer1Turn = true; // Speler 1 begint opnieuw
+        winPanel.SetActive(false); // Hides the WinPanel
+        _isGameOver = false; // Resets the player status
+        _isPlayer1Turn = true; // Player 1 starts again
     }
 }

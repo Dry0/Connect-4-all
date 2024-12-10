@@ -4,7 +4,7 @@ using UnityEngine;
 public class GridManager : MonoBehaviour
 {
     // the grid: 2D Array of GameObjects
-    private GameObject[,] gridArray;
+    private GameObject[,] _gridArray;
     
     // grid specifics
     [SerializeField] private int rows = 6; // Amount of rows
@@ -30,7 +30,7 @@ public class GridManager : MonoBehaviour
     // Method to make grid
     private void CreateGrid()
     {
-        gridArray = new GameObject[rows, columns];
+        _gridArray = new GameObject[rows, columns];
 
         for (int row = 0; row < rows; row++)
         {
@@ -41,7 +41,7 @@ public class GridManager : MonoBehaviour
                 cell.name = $"Cell ({row}), ({col})";
                 
                 // Adds a cell to the grid
-                gridArray[row, col] = cell;
+                _gridArray[row, col] = cell;
                 
                 // Set the cell as a child of the GridManager for better organization
                 cell.transform.parent = transform;
@@ -54,7 +54,7 @@ public class GridManager : MonoBehaviour
     {
         if (row >= 0 && row < rows && col >= 0 && col < columns)
         {
-            return gridArray[row, col];
+            return _gridArray[row, col];
         }
         Debug.LogWarning("GetCell: invalid Index!");
         return null;
